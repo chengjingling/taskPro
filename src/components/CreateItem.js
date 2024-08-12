@@ -14,14 +14,18 @@ import { useNavigation } from "@react-navigation/native";
 const CreateItem = () => {
   const [selectedType, setSelectedType] = useState("Task");
   const [title, setTitle] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
   const navigation = useNavigation();
 
-  const createTask = () => {
+  const createItem = () => {
     const itemsDb = collection(db, "items");
     addDoc(itemsDb, {
       title: title,
+      startDate: startDate,
+      startTime: startTime,
       endDate: endDate,
       endTime: endTime,
     });
@@ -68,38 +72,61 @@ const CreateItem = () => {
           </TouchableOpacity>
         </View>
 
-        {selectedType === "Task" && (
-          <View>
-            <View style={styles.titleContainer}>
-              <Text style={styles.label}>Title</Text>
-              <TextInput
-                style={styles.titleBox}
-                value={title}
-                onChangeText={setTitle}
-              />
-            </View>
-            <Text style={styles.label}>Deadline</Text>
-            <View style={styles.deadlineContainer}>
-              <TextInput
-                style={styles.deadlineBox}
-                value={endDate}
-                onChangeText={setEndDate}
-                placeholder="YYYY-MM-DD"
-              />
-              <TextInput
-                style={styles.deadlineBox}
-                value={endTime}
-                onChangeText={setEndTime}
-                placeholder="HH:MM"
-              />
-            </View>
-            <View style={styles.createButton}>
-              <TouchableOpacity onPress={createTask}>
-                <Text style={styles.createText}>Create</Text>
-              </TouchableOpacity>
-            </View>
+        <View>
+          <View style={styles.titleContainer}>
+            <Text style={styles.label}>Title</Text>
+            <TextInput
+              style={styles.titleBox}
+              value={title}
+              onChangeText={setTitle}
+            />
           </View>
-        )}
+
+          {selectedType === "Event" && (
+            <View>
+              <Text style={styles.label}>From</Text>
+              <View style={styles.dateTimeContainer}>
+                <TextInput
+                  style={styles.dateTimeBox}
+                  value={startDate}
+                  onChangeText={setStartDate}
+                  placeholder="YYYY-MM-DD"
+                />
+                <TextInput
+                  style={styles.dateTimeBox}
+                  value={startTime}
+                  onChangeText={setStartTime}
+                  placeholder="HH:MM"
+                />
+              </View>
+            </View>
+          )}
+
+          {selectedType === "Task" && (
+            <Text style={styles.label}>Deadline</Text>
+          )}
+          {selectedType === "Event" && <Text style={styles.label}>To</Text>}
+          <View style={styles.dateTimeContainer}>
+            <TextInput
+              style={styles.dateTimeBox}
+              value={endDate}
+              onChangeText={setEndDate}
+              placeholder="YYYY-MM-DD"
+            />
+            <TextInput
+              style={styles.dateTimeBox}
+              value={endTime}
+              onChangeText={setEndTime}
+              placeholder="HH:MM"
+            />
+          </View>
+
+          <View style={styles.createButton}>
+            <TouchableOpacity onPress={createItem}>
+              <Text style={styles.createText}>Create</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -126,7 +153,7 @@ const styles = StyleSheet.create({
   titleContainer: {
     marginBottom: 20,
   },
-  deadlineContainer: {
+  dateTimeContainer: {
     flexDirection: "row",
     marginBottom: 20,
   },
@@ -136,7 +163,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 4,
   },
-  deadlineBox: {
+  dateTimeBox: {
     borderWidth: 1,
     borderColor: "gray",
     padding: 8,
