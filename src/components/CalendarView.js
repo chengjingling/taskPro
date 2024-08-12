@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, SafeAreaView, FlatList, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  SafeAreaView,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { Calendar } from "react-native-calendars";
 import { format, parse } from "date-fns";
+import { useNavigation } from "@react-navigation/native";
 
 const CalendarView = () => {
   const [items, setItems] = useState([]);
@@ -12,6 +20,7 @@ const CalendarView = () => {
   const [filteredItems, setFilteredItems] = useState([]);
   const selectedDate = format(currentDate, "yyyy-MM-dd");
   const todaysDate = format(new Date(), "yyyy-MM-dd");
+  const navigation = useNavigation();
 
   useEffect(() => {
     setLoading(true);
@@ -51,14 +60,17 @@ const CalendarView = () => {
   }
 
   const renderItem = ({ item }) => (
-    <View style={styles.itemContainer}>
+    <TouchableOpacity
+      onPress={() => navigation.navigate("Item Details", { item })}
+      style={styles.itemContainer}
+    >
       <View style={styles.itemRow}>
         <Text style={styles.itemTitle}>{item.title}</Text>
         <Text style={styles.itemTime}>
           {format(parse(item.endTime, "HH:mm", new Date()), "h:mm a")}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (

@@ -3,6 +3,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import CalendarView from "./src/components/CalendarView";
 import CreateItem from "./src/components/CreateItem";
+import ItemDetails from "./src/components/ItemDetails";
 
 const Stack = createStackNavigator();
 
@@ -25,6 +26,7 @@ function App() {
           })}
         />
         <Stack.Screen name="New Item" component={CreateItem} />
+        <Stack.Screen name="Item Details" component={ItemDetails} />
       </Stack.Navigator>
     </NavigationContainer>
   );
