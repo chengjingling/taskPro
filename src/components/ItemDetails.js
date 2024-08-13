@@ -46,16 +46,34 @@ const ItemDetails = ({ route }) => {
       <View style={styles.container}>
         <View style={styles.detailsContainer}>
           <Text style={styles.itemTitle}>{item.title}</Text>
-          <Text>
-            {format(
-              parse(item.endDate, "yyyy-MM-dd", new Date()),
-              "eeee, d MMM yyyy"
-            )}
-          </Text>
-          <Text>
-            by {format(parse(item.endTime, "HH:mm", new Date()), "h:mm a")}
-          </Text>
+
+          {item.startDate ? (
+            <Text>
+              from{" "}
+              {format(
+                parse(item.startDate, "yyyy-MM-dd", new Date()),
+                "eeee, d MMM yyyy"
+              )}{" "}
+              {format(parse(item.startTime, "HH:mm", new Date()), "h:mm a")}
+              {"\n"}to{" "}
+              {format(
+                parse(item.endDate, "yyyy-MM-dd", new Date()),
+                "eeee, d MMM yyyy"
+              )}{" "}
+              {format(parse(item.endTime, "HH:mm", new Date()), "h:mm a")}
+            </Text>
+          ) : (
+            <Text>
+              by{" "}
+              {format(
+                parse(item.endDate, "yyyy-MM-dd", new Date()),
+                "eeee, d MMM yyyy"
+              )}{" "}
+              {format(parse(item.endTime, "HH:mm", new Date()), "h:mm a")}
+            </Text>
+          )}
         </View>
+
         <View style={styles.deleteButton}>
           <TouchableOpacity onPress={confirmDelete}>
             <Text style={styles.deleteText}>Delete</Text>
