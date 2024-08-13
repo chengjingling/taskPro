@@ -46,15 +46,35 @@ const CalendarView = () => {
   }, [items, selectedDate]);
 
   const markedDates = items.reduce((acc, item) => {
-    const date = item.endDate;
-    if (!acc[date]) {
-      acc[date] = {
-        marked: true,
-        dotColor: "#ccc",
-        selected: date === selectedDate,
-        selectedColor: date === todaysDate ? "#00BAF2" : "black",
-      };
+    if (item.startDate) {
+      const startDate = new Date(item.startDate);
+      const endDate = new Date(item.endDate);
+      for (
+        let date = startDate;
+        date <= endDate;
+        date.setDate(date.getDate() + 1)
+      ) {
+        const formattedDate = format(date, "yyyy-MM-dd");
+        if (!acc[formattedDate]) {
+          acc[formattedDate] = {
+            marked: true,
+            dotColor: "#ccc",
+            selected: formattedDate === selectedDate,
+            selectedColor: formattedDate === todaysDate ? "#00BAF2" : "black",
+          };
+        }
+      }
+    } else {
+      if (!acc[item.endDate]) {
+        acc[item.endDate] = {
+          marked: true,
+          dotColor: "#ccc",
+          selected: item.endDate === selectedDate,
+          selectedColor: item.endDate === todaysDate ? "#00BAF2" : "black",
+        };
+      }
     }
+
     return acc;
   }, {});
 
