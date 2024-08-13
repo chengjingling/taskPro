@@ -6,6 +6,7 @@ import {
   Text,
   TextInput,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
@@ -23,15 +24,27 @@ const CreateItem = () => {
   const navigation = useNavigation();
 
   const createItem = () => {
-    const itemsDb = collection(db, "items");
-    addDoc(itemsDb, {
-      title: title,
-      startDate: startDate ? format(startDate, "yyyy-MM-dd") : startDate,
-      startTime: startTime ? format(startTime, "HH:mm") : startTime,
-      endDate: format(endDate, "yyyy-MM-dd"),
-      endTime: format(endTime, "HH:mm"),
-    });
-    navigation.navigate("Calendar");
+    if (!title) {
+      Alert.alert("Unable to create item", "Title cannot be blank");
+    } else if (
+      startDate &&
+      (startDate > endDate || (startDate === endDate && startTime >= endTime))
+    ) {
+      Alert.alert(
+        "Unable to create item",
+        "'To' date/time must be after 'From' date/time"
+      );
+    } else {
+      const itemsDb = collection(db, "items");
+      addDoc(itemsDb, {
+        title: title,
+        startDate: startDate ? format(startDate, "yyyy-MM-dd") : startDate,
+        startTime: startTime ? format(startTime, "HH:mm") : startTime,
+        endDate: format(endDate, "yyyy-MM-dd"),
+        endTime: format(endTime, "HH:mm"),
+      });
+      navigation.navigate("Calendar");
+    }
   };
 
   const onChangeStartDate = (event, selectedDate) => {
