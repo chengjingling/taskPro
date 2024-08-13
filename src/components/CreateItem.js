@@ -10,26 +10,62 @@ import {
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useNavigation } from "@react-navigation/native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { format } from "date-fns";
 
 const CreateItem = () => {
   const [selectedType, setSelectedType] = useState("Task");
   const [title, setTitle] = useState("");
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [endDate, setEndDate] = useState(new Date());
+  const [endTime, setEndTime] = useState(new Date());
   const navigation = useNavigation();
 
   const createItem = () => {
     const itemsDb = collection(db, "items");
     addDoc(itemsDb, {
       title: title,
-      startDate: startDate,
-      startTime: startTime,
-      endDate: endDate,
-      endTime: endTime,
+      startDate: startDate ? format(startDate, "yyyy-MM-dd") : startDate,
+      startTime: startTime ? format(startTime, "HH:mm") : startTime,
+      endDate: format(endDate, "yyyy-MM-dd"),
+      endTime: format(endTime, "HH:mm"),
     });
     navigation.navigate("Calendar");
+  };
+
+  const onChangeStartDate = (event, selectedDate) => {
+    setStartDate(selectedDate);
+  };
+
+  const onChangeStartTime = (event, selectedTime) => {
+    setStartTime(selectedTime);
+  };
+
+  const onChangeEndDate = (event, selectedDate) => {
+    setEndDate(selectedDate);
+  };
+
+  const onChangeEndTime = (event, selectedTime) => {
+    setEndTime(selectedTime);
+  };
+
+  const changeToTask = () => {
+    setSelectedType("Task");
+    setStartDate("");
+    setStartTime("");
+  };
+
+  const changeToEvent = () => {
+    setSelectedType("Event");
+    setStartDate(new Date());
+    setStartTime(new Date());
+  };
+
+  const changeToGroupEvent = () => {
+    setSelectedType("Group Event");
+    setStartDate(new Date());
+    setStartTime(new Date());
   };
 
   return (
@@ -37,7 +73,7 @@ const CreateItem = () => {
       <View style={styles.container}>
         <Text style={styles.label}>Create a:</Text>
         <View style={styles.typeContainer}>
-          <TouchableOpacity onPress={() => setSelectedType("Task")}>
+          <TouchableOpacity onPress={changeToTask}>
             <Text
               style={
                 selectedType === "Task"
@@ -48,7 +84,7 @@ const CreateItem = () => {
               Task
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setSelectedType("Event")}>
+          <TouchableOpacity onPress={changeToEvent}>
             <Text
               style={
                 selectedType === "Event"
@@ -59,7 +95,7 @@ const CreateItem = () => {
               Event
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setSelectedType("Group Event")}>
+          <TouchableOpacity onPress={changeToGroupEvent}>
             <Text
               style={
                 selectedType === "Group Event"
@@ -86,17 +122,15 @@ const CreateItem = () => {
             <View>
               <Text style={styles.label}>From</Text>
               <View style={styles.dateTimeContainer}>
-                <TextInput
-                  style={styles.dateTimeBox}
+                <DateTimePicker
                   value={startDate}
-                  onChangeText={setStartDate}
-                  placeholder="YYYY-MM-DD"
+                  mode="date"
+                  onChange={onChangeStartDate}
                 />
-                <TextInput
-                  style={styles.dateTimeBox}
+                <DateTimePicker
                   value={startTime}
-                  onChangeText={setStartTime}
-                  placeholder="HH:MM"
+                  mode="time"
+                  onChange={onChangeStartTime}
                 />
               </View>
             </View>
@@ -107,17 +141,15 @@ const CreateItem = () => {
           )}
           {selectedType === "Event" && <Text style={styles.label}>To</Text>}
           <View style={styles.dateTimeContainer}>
-            <TextInput
-              style={styles.dateTimeBox}
+            <DateTimePicker
               value={endDate}
-              onChangeText={setEndDate}
-              placeholder="YYYY-MM-DD"
+              mode="date"
+              onChange={onChangeEndDate}
             />
-            <TextInput
-              style={styles.dateTimeBox}
+            <DateTimePicker
               value={endTime}
-              onChangeText={setEndTime}
-              placeholder="HH:MM"
+              mode="time"
+              onChange={onChangeEndTime}
             />
           </View>
 
@@ -162,14 +194,6 @@ const styles = StyleSheet.create({
     borderColor: "gray",
     padding: 8,
     borderRadius: 4,
-  },
-  dateTimeBox: {
-    borderWidth: 1,
-    borderColor: "gray",
-    padding: 8,
-    borderRadius: 4,
-    width: 120,
-    marginRight: 10,
   },
   createButton: {
     alignItems: "center",
