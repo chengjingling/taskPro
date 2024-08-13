@@ -34,7 +34,13 @@ const CalendarView = () => {
   }, []);
 
   useEffect(() => {
-    const filtered = items.filter((item) => item.endDate === selectedDate);
+    const filtered = items.filter((item) => {
+      if (item.startDate) {
+        return selectedDate >= item.startDate && selectedDate <= item.endDate;
+      } else {
+        return selectedDate === item.endDate;
+      }
+    });
     const sorted = filtered.sort((a, b) => a.endTime.localeCompare(b.endTime));
     setFilteredItems(sorted);
   }, [items, selectedDate]);
@@ -66,9 +72,32 @@ const CalendarView = () => {
     >
       <View style={styles.itemRow}>
         <Text style={styles.itemTitle}>{item.title}</Text>
-        <Text style={styles.itemTime}>
-          {format(parse(item.endTime, "HH:mm", new Date()), "h:mm a")}
-        </Text>
+        {item.startDate ? (
+          <View style={styles.itemTimeContainer}>
+            <Text style={styles.itemTime}>
+              {item.startDate !== selectedDate &&
+                format(
+                  parse(item.startDate, "yyyy-MM-dd", new Date()),
+                  "EEE, d MMM"
+                )}{" "}
+              {format(parse(item.startTime, "HH:mm", new Date()), "h:mm a")}
+            </Text>
+            <Text style={styles.itemTime}>
+              {item.endDate !== selectedDate &&
+                format(
+                  parse(item.endDate, "yyyy-MM-dd", new Date()),
+                  "EEE, d MMM"
+                )}{" "}
+              {format(parse(item.endTime, "HH:mm", new Date()), "h:mm a")}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.itemTimeContainer}>
+            <Text style={styles.itemTime}>
+              {format(parse(item.endTime, "HH:mm", new Date()), "h:mm a")}
+            </Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -115,11 +144,14 @@ const styles = StyleSheet.create({
   itemRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   itemTitle: {
     fontSize: 14,
     fontWeight: "bold",
+  },
+  itemTimeContainer: {
+    alignItems: "flex-end",
   },
   itemTime: {
     fontSize: 14,
