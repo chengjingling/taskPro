@@ -1,10 +1,10 @@
 import React from "react";
 import {
+  SafeAreaView,
   View,
   Text,
-  SafeAreaView,
-  StyleSheet,
   TouchableOpacity,
+  StyleSheet,
   Alert,
 } from "react-native";
 import { format, parse } from "date-fns";

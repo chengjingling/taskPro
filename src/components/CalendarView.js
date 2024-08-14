@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import {
-  View,
-  Text,
   SafeAreaView,
+  View,
   FlatList,
-  StyleSheet,
   TouchableOpacity,
+  Text,
+  StyleSheet,
 } from "react-native";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../config/firebase";
