@@ -213,6 +213,7 @@ const styles = StyleSheet.create({
   },
   createText: {
     color: "#0275d8",
+    fontSize: 16,
   },
 });
 

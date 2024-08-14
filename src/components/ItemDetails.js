@@ -101,6 +101,7 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     color: "#dc3545",
+    fontSize: 16,
   },
 });
 
