@@ -12,6 +12,7 @@ import { db } from "../config/firebase";
 import { Calendar } from "react-native-calendars";
 import { format, parse } from "date-fns";
 import { useNavigation } from "@react-navigation/native";
+import { auth } from "../config/firebase";
 
 const CalendarView = () => {
   const [items, setItems] = useState([]);
@@ -35,10 +36,12 @@ const CalendarView = () => {
 
   useEffect(() => {
     const filtered = items.filter((item) => {
-      if (item.startDate) {
-        return selectedDate >= item.startDate && selectedDate <= item.endDate;
-      } else {
-        return selectedDate === item.endDate;
+      if (item.userId === auth.currentUser?.uid) {
+        if (item.startDate) {
+          return selectedDate >= item.startDate && selectedDate <= item.endDate;
+        } else {
+          return selectedDate === item.endDate;
+        }
       }
     });
     const sorted = filtered.sort((a, b) => a.endTime.localeCompare(b.endTime));
@@ -46,32 +49,34 @@ const CalendarView = () => {
   }, [items, selectedDate]);
 
   const markedDates = items.reduce((acc, item) => {
-    if (item.startDate) {
-      const startDate = new Date(item.startDate);
-      const endDate = new Date(item.endDate);
-      for (
-        let date = startDate;
-        date <= endDate;
-        date.setDate(date.getDate() + 1)
-      ) {
-        const formattedDate = format(date, "yyyy-MM-dd");
-        if (!acc[formattedDate]) {
-          acc[formattedDate] = {
+    if (item.userId === auth.currentUser?.uid) {
+      if (item.startDate) {
+        const startDate = new Date(item.startDate);
+        const endDate = new Date(item.endDate);
+        for (
+          let date = startDate;
+          date <= endDate;
+          date.setDate(date.getDate() + 1)
+        ) {
+          const formattedDate = format(date, "yyyy-MM-dd");
+          if (!acc[formattedDate]) {
+            acc[formattedDate] = {
+              marked: true,
+              dotColor: "#ccc",
+              selected: formattedDate === selectedDate,
+              selectedColor: formattedDate === todaysDate ? "#00BAF2" : "black",
+            };
+          }
+        }
+      } else {
+        if (!acc[item.endDate]) {
+          acc[item.endDate] = {
             marked: true,
             dotColor: "#ccc",
-            selected: formattedDate === selectedDate,
-            selectedColor: formattedDate === todaysDate ? "#00BAF2" : "black",
+            selected: item.endDate === selectedDate,
+            selectedColor: item.endDate === todaysDate ? "#00BAF2" : "black",
           };
         }
-      }
-    } else {
-      if (!acc[item.endDate]) {
-        acc[item.endDate] = {
-          marked: true,
-          dotColor: "#ccc",
-          selected: item.endDate === selectedDate,
-          selectedColor: item.endDate === todaysDate ? "#00BAF2" : "black",
-        };
       }
     }
 
