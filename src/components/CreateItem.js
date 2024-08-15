@@ -13,6 +13,7 @@ import { db } from "../config/firebase";
 import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { format } from "date-fns";
+import { auth } from "../config/firebase";
 
 const CreateItem = () => {
   const [selectedType, setSelectedType] = useState("Task");
@@ -42,6 +43,7 @@ const CreateItem = () => {
         startTime: startTime ? format(startTime, "HH:mm") : startTime,
         endDate: format(endDate, "yyyy-MM-dd"),
         endTime: format(endTime, "HH:mm"),
+        userId: auth.currentUser?.uid,
       });
       navigation.navigate("Calendar");
     }
