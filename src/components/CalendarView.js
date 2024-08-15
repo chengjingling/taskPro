@@ -44,7 +44,31 @@ const CalendarView = () => {
         }
       }
     });
-    const sorted = filtered.sort((a, b) => a.endTime.localeCompare(b.endTime));
+    const sorted = filtered.sort((a, b) => {
+      if (a.startDate && b.startDate) {
+        if (a.startDate !== b.startDate) {
+          return a.startDate.localeCompare(b.startDate);
+        } else if (a.startTime !== b.startTime) {
+          return a.startTime.localeCompare(b.startTime);
+        } else {
+          return a.endTime.localeCompare(b.endTime);
+        }
+      } else if (!a.startDate && b.startDate) {
+        if (a.endDate !== b.startDate) {
+          return a.endDate.localeCompare(b.startDate);
+        } else {
+          return a.endTime.localeCompare(b.startTime);
+        }
+      } else if (a.startDate && !b.startDate) {
+        if (a.startDate !== b.endDate) {
+          return a.startDate.localeCompare(b.endDate);
+        } else {
+          return a.startTime.localeCompare(b.endTime);
+        }
+      } else {
+        return a.endTime.localeCompare(b.endTime);
+      }
+    });
     setFilteredItems(sorted);
   }, [items, selectedDate]);
 
