@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -22,6 +22,9 @@ const CreateItem = () => {
   const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState(new Date());
   const [endTime, setEndTime] = useState(new Date());
+  const [createButtonVisible, setCreateButtonVisible] = useState(true);
+  const [emails, setEmails] = useState([""]);
+  const [emailsValid, setEmailsValid] = useState([""]);
   const navigation = useNavigation();
 
   const createItem = () => {
@@ -69,6 +72,7 @@ const CreateItem = () => {
     setSelectedType("Task");
     setStartDate("");
     setStartTime("");
+    setCreateButtonVisible(true);
   };
 
   const changeToEvent = () => {
@@ -76,6 +80,7 @@ const CreateItem = () => {
     setStartDate(new Date());
     setStartTime(new Date());
     setEndDate(new Date());
+    setCreateButtonVisible(true);
   };
 
   const changeToGroupEvent = () => {
@@ -83,6 +88,44 @@ const CreateItem = () => {
     setStartDate(new Date());
     setStartTime(new Date());
     setEndDate(new Date());
+    setCreateButtonVisible(false);
+  };
+
+  const handleEmailChange = (text, index) => {
+    const updatedEmails = [...emails];
+    updatedEmails[index] = text;
+    setEmails(updatedEmails);
+  };
+
+  const checkAvailability = () => {
+    if (emails.length === 0) {
+      Alert.alert("Error", "Please enter at least one email address");
+    } else {
+      const usersDb = collection(db, "users");
+      onSnapshot(usersDb, (snapshot) => {
+        let usersList = [];
+        snapshot.docs.map((doc) =>
+          usersList.push({ ...doc.data(), id: doc.id })
+        );
+        const emailsList = usersList.map((user) => user.email);
+        let checkEmails = [];
+        let checked = [];
+        for (const email of emails) {
+          const emailLower = email.toLowerCase();
+          if (emailsList.includes(emailLower)) {
+            if (checked.includes(emailLower)) {
+              checkEmails.push("duplicate");
+            } else {
+              checkEmails.push("valid");
+            }
+          } else {
+            checkEmails.push("not found");
+          }
+          checked.push(emailLower);
+        }
+        setEmailsValid(checkEmails);
+      });
+    }
   };
 
   return (
@@ -157,24 +200,81 @@ const CreateItem = () => {
             <Text style={styles.label}>Deadline</Text>
           )}
           {selectedType === "Event" && <Text style={styles.label}>To</Text>}
-          <View style={styles.dateTimeContainer}>
-            <DateTimePicker
-              value={endDate}
-              mode="date"
-              onChange={onChangeEndDate}
-            />
-            <DateTimePicker
-              value={endTime}
-              mode="time"
-              onChange={onChangeEndTime}
-            />
-          </View>
+          {(selectedType === "Task" || selectedType === "Event") && (
+            <View style={styles.dateTimeContainer}>
+              <DateTimePicker
+                value={endDate}
+                mode="date"
+                onChange={onChangeEndDate}
+              />
+              <DateTimePicker
+                value={endTime}
+                mode="time"
+                onChange={onChangeEndTime}
+              />
+            </View>
+          )}
 
-          <View style={styles.createButton}>
-            <TouchableOpacity onPress={createItem}>
-              <Text style={styles.createText}>Create</Text>
-            </TouchableOpacity>
-          </View>
+          {selectedType === "Group Event" && (
+            <View>
+              <Text style={styles.label}>Participant emails</Text>
+              {emails.map((email, index) => (
+                <View>
+                  <View key={index} style={styles.emailRow}>
+                    <TextInput
+                      style={[
+                        styles.emailBox,
+                        (emailsValid[index] === "not found" ||
+                          emailsValid[index] === "duplicate") &&
+                          styles.invalidEmailBox,
+                      ]}
+                      value={email}
+                      onChangeText={(text) => handleEmailChange(text, index)}
+                    />
+                    <TouchableOpacity
+                      onPress={() =>
+                        setEmails(emails.filter((_, i) => i !== index))
+                      }
+                    >
+                      <Text style={styles.removeText}>Remove</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {emailsValid[index] === "not found" && (
+                    <Text style={styles.invalidEmailText}>
+                      This email does not exist.
+                    </Text>
+                  )}
+                  {emailsValid[index] === "duplicate" && (
+                    <Text style={styles.invalidEmailText}>
+                      This email has already been entered.
+                    </Text>
+                  )}
+                </View>
+              ))}
+              <TouchableOpacity
+                onPress={() => setEmails([...emails, ""])}
+                style={styles.addEmailButton}
+              >
+                <Text style={styles.blue}>Add email</Text>
+              </TouchableOpacity>
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity onPress={checkAvailability}>
+                  <Text style={styles.blue}>Check availability</Text>
+                </TouchableOpacity>
+              </View>
+              {emailsValid.every((status) => status === "valid") && (
+                <Text>All emails valid</Text>
+              )}
+            </View>
+          )}
+
+          {createButtonVisible && (
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity onPress={createItem}>
+                <Text style={styles.createText}>Create</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -202,17 +302,47 @@ const styles = StyleSheet.create({
   titleContainer: {
     marginBottom: 20,
   },
-  dateTimeContainer: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
   titleBox: {
     borderWidth: 1,
     borderColor: "gray",
     padding: 8,
     borderRadius: 4,
   },
-  createButton: {
+  dateTimeContainer: {
+    flexDirection: "row",
+    marginBottom: 20,
+  },
+  emailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  emailBox: {
+    borderWidth: 1,
+    borderColor: "gray",
+    padding: 8,
+    borderRadius: 4,
+    width: "60%",
+    marginBottom: 5,
+    marginRight: 10,
+  },
+  invalidEmailBox: {
+    borderColor: "#dc3545",
+  },
+  removeText: {
+    color: "#dc3545",
+  },
+  invalidEmailText: {
+    color: "#dc3545",
+    marginBottom: 5,
+  },
+  addEmailButton: {
+    marginTop: 5,
+    marginBottom: 20,
+  },
+  blue: {
+    color: "#0275d8",
+  },
+  buttonContainer: {
     alignItems: "center",
   },
   createText: {
