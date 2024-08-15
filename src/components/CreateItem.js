@@ -75,12 +75,14 @@ const CreateItem = () => {
     setSelectedType("Event");
     setStartDate(new Date());
     setStartTime(new Date());
+    setEndDate(new Date());
   };
 
   const changeToGroupEvent = () => {
     setSelectedType("Group Event");
     setStartDate(new Date());
     setStartTime(new Date());
+    setEndDate(new Date());
   };
 
   return (
