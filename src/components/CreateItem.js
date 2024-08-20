@@ -23,6 +23,8 @@ const CreateItem = () => {
   const [endDate, setEndDate] = useState(new Date());
   const [endTime, setEndTime] = useState(new Date());
   const [createButtonVisible, setCreateButtonVisible] = useState(true);
+  const [hours, setHours] = useState("");
+  const [minutes, setMinutes] = useState("");
   const [emails, setEmails] = useState([""]);
   const [emailsValid, setEmailsValid] = useState([""]);
   const navigation = useNavigation();
@@ -219,6 +221,24 @@ const CreateItem = () => {
 
           {selectedType === "Group Event" && (
             <View>
+              <Text style={styles.label}>Duration</Text>
+              <View style={styles.durationRow}>
+                <TextInput
+                  style={styles.durationBox}
+                  value={hours}
+                  onChangeText={setHours}
+                />
+                <Text style={styles.hoursText}>hours</Text>
+                <TextInput
+                  style={styles.durationBox}
+                  value={minutes}
+                  onChangeText={setMinutes}
+                />
+                <Text>minutes</Text>
+              </View>
+              <Text style={styles.multiplesMessage}>
+                Minutes should be in multiples of 15.
+              </Text>
               <Text style={styles.label}>Participant emails</Text>
               {emails.map((email, index) => (
                 <View key={index}>
@@ -319,6 +339,26 @@ const styles = StyleSheet.create({
   dateTimeContainer: {
     flexDirection: "row",
     marginBottom: 20,
+  },
+  durationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  durationBox: {
+    borderWidth: 1,
+    borderColor: "gray",
+    padding: 8,
+    borderRadius: 4,
+    width: "20%",
+    marginRight: 5,
+  },
+  hoursText: {
+    marginRight: 10,
+  },
+  multiplesMessage: {
+    marginBottom: 20,
+    color: "gray",
   },
   emailRow: {
     flexDirection: "row",
