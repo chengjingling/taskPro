@@ -113,7 +113,9 @@ const CreateItem = () => {
         for (const email of emails) {
           const emailLower = email.toLowerCase();
           if (emailsList.includes(emailLower)) {
-            if (checked.includes(emailLower)) {
+            if (emailLower === auth.currentUser?.email) {
+              checkEmails.push("own email");
+            } else if (checked.includes(emailLower)) {
               checkEmails.push("duplicate");
             } else {
               checkEmails.push("valid");
@@ -219,13 +221,14 @@ const CreateItem = () => {
             <View>
               <Text style={styles.label}>Participant emails</Text>
               {emails.map((email, index) => (
-                <View>
-                  <View key={index} style={styles.emailRow}>
+                <View key={index}>
+                  <View style={styles.emailRow}>
                     <TextInput
                       style={[
                         styles.emailBox,
                         (emailsValid[index] === "not found" ||
-                          emailsValid[index] === "duplicate") &&
+                          emailsValid[index] === "duplicate" ||
+                          emailsValid[index] === "own email") &&
                           styles.invalidEmailBox,
                       ]}
                       value={email}
@@ -247,6 +250,11 @@ const CreateItem = () => {
                   {emailsValid[index] === "duplicate" && (
                     <Text style={styles.invalidEmailText}>
                       This email has already been entered.
+                    </Text>
+                  )}
+                  {emailsValid[index] === "own email" && (
+                    <Text style={styles.invalidEmailText}>
+                      You do not need to enter your own email.
                     </Text>
                   )}
                 </View>
