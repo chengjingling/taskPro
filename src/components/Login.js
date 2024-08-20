@@ -14,6 +14,8 @@ import {
   signInWithEmailAndPassword,
 } from "../config/firebase";
 import { useNavigation } from "@react-navigation/native";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "../config/firebase";
 
 const Login = () => {
   const [selectedType, setSelectedType] = useState("Login");
@@ -37,6 +39,13 @@ const Login = () => {
       .then((userCredentials) => {
         const user = userCredentials.user;
         console.log("Registered with:", user.email);
+        const usersDb = collection(db, "users");
+        addDoc(usersDb, {
+          firstName: firstName,
+          lastName: lastName,
+          email: email.toLowerCase(),
+        });
+        console.log("User added to db");
         handleLogin();
       })
       .catch((error) => Alert.alert("Error", error.message));
