@@ -25,6 +25,7 @@ const CreateItem = () => {
   const [createButtonVisible, setCreateButtonVisible] = useState(true);
   const [hours, setHours] = useState("");
   const [minutes, setMinutes] = useState("");
+  const [durationValid, setDurationValid] = useState(true);
   const [emails, setEmails] = useState([""]);
   const [emailsValid, setEmailsValid] = useState([""]);
   const navigation = useNavigation();
@@ -100,7 +101,29 @@ const CreateItem = () => {
   };
 
   const checkAvailability = () => {
-    if (emails.length === 0) {
+    setDurationValid(true);
+    setEmailsValid(emails.map(() => ""));
+    if (hours === "") {
+      setHours("0");
+    }
+    if (minutes === "") {
+      setMinutes("0");
+    }
+    const hoursNum = Number(hours);
+    const minutesNum = Number(minutes);
+    if (hoursNum === 0 && minutesNum === 0) {
+      Alert.alert("Error", "Duration cannot be zero");
+      setDurationValid(false);
+    } else if (!Number.isInteger(hoursNum) || !Number.isInteger(minutesNum)) {
+      Alert.alert("Error", "Duration must be in integers");
+      setDurationValid(false);
+    } else if (minutesNum % 15 !== 0) {
+      Alert.alert(
+        "Error",
+        "Minutes must be in multiples of 15 (e.g. 0, 15, 30, 45)"
+      );
+      setDurationValid(false);
+    } else if (emails.length === 0) {
       Alert.alert("Error", "Please enter at least one email address");
     } else {
       const usersDb = collection(db, "users");
@@ -224,15 +247,23 @@ const CreateItem = () => {
               <Text style={styles.label}>Duration</Text>
               <View style={styles.durationRow}>
                 <TextInput
-                  style={styles.durationBox}
+                  style={[
+                    styles.durationBox,
+                    !durationValid && styles.invalidBox,
+                  ]}
                   value={hours}
                   onChangeText={setHours}
+                  keyboardType="numeric"
                 />
                 <Text style={styles.hoursText}>hours</Text>
                 <TextInput
-                  style={styles.durationBox}
+                  style={[
+                    styles.durationBox,
+                    !durationValid && styles.invalidBox,
+                  ]}
                   value={minutes}
                   onChangeText={setMinutes}
+                  keyboardType="numeric"
                 />
                 <Text>minutes</Text>
               </View>
@@ -249,7 +280,7 @@ const CreateItem = () => {
                         (emailsValid[index] === "not found" ||
                           emailsValid[index] === "duplicate" ||
                           emailsValid[index] === "own email") &&
-                          styles.invalidEmailBox,
+                          styles.invalidBox,
                       ]}
                       value={email}
                       onChangeText={(text) => handleEmailChange(text, index)}
@@ -353,6 +384,9 @@ const styles = StyleSheet.create({
     width: "20%",
     marginRight: 5,
   },
+  invalidBox: {
+    borderColor: "#dc3545",
+  },
   hoursText: {
     marginRight: 10,
   },
@@ -372,9 +406,6 @@ const styles = StyleSheet.create({
     width: "60%",
     marginBottom: 5,
     marginRight: 10,
-  },
-  invalidEmailBox: {
-    borderColor: "#dc3545",
   },
   removeText: {
     color: "#dc3545",
