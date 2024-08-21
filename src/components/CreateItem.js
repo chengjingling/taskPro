@@ -57,6 +57,7 @@ const CreateItem = () => {
         participants: emails,
         email: auth.currentUser?.email,
       });
+      Alert.alert("Success", "Item created!");
       navigation.navigate("Calendar");
     }
   };
