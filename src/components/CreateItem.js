@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   View,
@@ -7,12 +7,13 @@ import {
   TextInput,
   StyleSheet,
   Alert,
+  ScrollView,
 } from "react-native";
 import { collection, addDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { auth } from "../config/firebase";
 
 const CreateItem = () => {
@@ -22,25 +23,29 @@ const CreateItem = () => {
   const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState(new Date());
   const [endTime, setEndTime] = useState(new Date());
-  const [createButtonVisible, setCreateButtonVisible] = useState(true);
   const [hours, setHours] = useState("");
   const [minutes, setMinutes] = useState("");
   const [durationValid, setDurationValid] = useState(true);
   const [emails, setEmails] = useState([""]);
   const [emailsValid, setEmailsValid] = useState([""]);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState(0);
+  const [createButtonEnabled, setCreateButtonEnabled] = useState(true);
   const navigation = useNavigation();
 
   const createItem = () => {
-    if (!title) {
-      Alert.alert("Unable to create item", "Title cannot be blank");
+    if (!createButtonEnabled) {
+      Alert.alert(
+        "Error",
+        "Please select 'Check availability' first to find a common time slot"
+      );
+    } else if (!title) {
+      Alert.alert("Error", "Title cannot be blank");
     } else if (
       startDate &&
       (startDate > endDate || (startDate === endDate && startTime >= endTime))
     ) {
-      Alert.alert(
-        "Unable to create item",
-        "'To' date/time must be after 'From' date/time"
-      );
+      Alert.alert("Error", "'To' date/time must be after 'From' date/time");
     } else {
       const itemsDb = collection(db, "items");
       addDoc(itemsDb, {
@@ -49,7 +54,8 @@ const CreateItem = () => {
         startTime: startTime ? format(startTime, "HH:mm") : startTime,
         endDate: format(endDate, "yyyy-MM-dd"),
         endTime: format(endTime, "HH:mm"),
-        userId: auth.currentUser?.uid,
+        participants: emails,
+        email: auth.currentUser?.email,
       });
       navigation.navigate("Calendar");
     }
@@ -75,7 +81,7 @@ const CreateItem = () => {
     setSelectedType("Task");
     setStartDate("");
     setStartTime("");
-    setCreateButtonVisible(true);
+    setCreateButtonEnabled(true);
   };
 
   const changeToEvent = () => {
@@ -83,7 +89,7 @@ const CreateItem = () => {
     setStartDate(new Date());
     setStartTime(new Date());
     setEndDate(new Date());
-    setCreateButtonVisible(true);
+    setCreateButtonEnabled(true);
   };
 
   const changeToGroupEvent = () => {
@@ -91,7 +97,7 @@ const CreateItem = () => {
     setStartDate(new Date());
     setStartTime(new Date());
     setEndDate(new Date());
-    setCreateButtonVisible(false);
+    setCreateButtonEnabled(false);
   };
 
   const handleEmailChange = (text, index) => {
@@ -100,8 +106,9 @@ const CreateItem = () => {
     setEmails(updatedEmails);
   };
 
-  const checkAvailability = () => {
+  const validateDurationAndEmails = () => {
     setDurationValid(true);
+    setEmails(emails.map((email) => email.toLowerCase()));
     setEmailsValid(emails.map(() => ""));
     if (hours === "") {
       setHours("0");
@@ -155,187 +162,281 @@ const CreateItem = () => {
     }
   };
 
+  useEffect(() => {
+    if (durationValid && emailsValid.every((status) => status === "valid")) {
+      const start = new Date();
+      start.setDate(start.getDate() + 1);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date();
+      end.setDate(end.getDate() + 4);
+      end.setHours(0, 0, 0, 0);
+      const durationMilliseconds = hours * 60 * 60 * 1000 + minutes * 60 * 1000;
+      let slots = [];
+      for (
+        let current = start;
+        current < end;
+        current = new Date(current.getTime() + durationMilliseconds)
+      ) {
+        slots.push({
+          start: current,
+          end: new Date(current.getTime() + durationMilliseconds),
+        });
+      }
+      const itemsDb = collection(db, "items");
+      onSnapshot(itemsDb, (snapshot) => {
+        let itemsList = [];
+        snapshot.docs.map((doc) =>
+          itemsList.push({ ...doc.data(), id: doc.id })
+        );
+        for (const item of itemsList) {
+          if (
+            (item.email === auth.currentUser?.email ||
+              emails.includes(item.email)) &&
+            item.startDate
+          ) {
+            const itemStart = parse(
+              `${item.startDate} ${item.startTime}`,
+              "yyyy-MM-dd HH:mm",
+              new Date()
+            );
+            const itemEnd = parse(
+              `${item.endDate} ${item.endTime}`,
+              "yyyy-MM-dd HH:mm",
+              new Date()
+            );
+            slots = slots.filter(
+              (slot) => slot.end <= itemStart || slot.start >= itemEnd
+            );
+          }
+        }
+        setAvailableSlots(slots);
+      });
+      setCreateButtonEnabled(true);
+    }
+  }, [durationValid, emailsValid]);
+
+  const CustomRadioButton = ({ index, start, end }) => (
+    <TouchableOpacity
+      style={[
+        styles.radioButton,
+        selectedSlot === index && styles.selectedRadioButton,
+      ]}
+      onPress={() => handleRadioButtonPress(index)}
+    >
+      <Text
+        style={[
+          styles.radioButtonText,
+          selectedSlot === index && styles.selectedRadioButtonText,
+        ]}
+      >
+        {format(start, "eeee, d MMM yyyy h:mm a")}
+        {"\n"}to {format(end, "eeee, d MMM yyyy h:mm a")}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const handleRadioButtonPress = (index) => {
+    setSelectedSlot(index);
+    setStartDate(new Date(availableSlots[index].start));
+    setStartTime(new Date(availableSlots[index].start));
+    setEndDate(new Date(availableSlots[index].end));
+    setEndTime(new Date(availableSlots[index].end));
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.container}>
-        <Text style={styles.label}>Create a:</Text>
-        <View style={styles.typeContainer}>
-          <TouchableOpacity onPress={changeToTask}>
-            <Text
-              style={
-                selectedType === "Task"
-                  ? styles.selectedType
-                  : styles.unselectedType
-              }
-            >
-              Task
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={changeToEvent}>
-            <Text
-              style={
-                selectedType === "Event"
-                  ? styles.selectedType
-                  : styles.unselectedType
-              }
-            >
-              Event
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={changeToGroupEvent}>
-            <Text
-              style={
-                selectedType === "Group Event"
-                  ? styles.selectedType
-                  : styles.unselectedType
-              }
-            >
-              Group Event
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View>
-          <View style={styles.titleContainer}>
-            <Text style={styles.label}>Title</Text>
-            <TextInput
-              style={styles.titleBox}
-              value={title}
-              onChangeText={setTitle}
-            />
+      <ScrollView>
+        <View style={styles.container}>
+          <Text style={styles.label}>Create a:</Text>
+          <View style={styles.typeContainer}>
+            <TouchableOpacity onPress={changeToTask}>
+              <Text
+                style={
+                  selectedType === "Task"
+                    ? styles.selectedType
+                    : styles.unselectedType
+                }
+              >
+                Task
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={changeToEvent}>
+              <Text
+                style={
+                  selectedType === "Event"
+                    ? styles.selectedType
+                    : styles.unselectedType
+                }
+              >
+                Event
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={changeToGroupEvent}>
+              <Text
+                style={
+                  selectedType === "Group Event"
+                    ? styles.selectedType
+                    : styles.unselectedType
+                }
+              >
+                Group Event
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          {selectedType === "Event" && (
-            <View>
-              <Text style={styles.label}>From</Text>
+          <View>
+            <View style={styles.titleContainer}>
+              <Text style={styles.label}>Title</Text>
+              <TextInput
+                style={styles.titleBox}
+                value={title}
+                onChangeText={setTitle}
+              />
+            </View>
+
+            {selectedType === "Event" && (
+              <View>
+                <Text style={styles.label}>From</Text>
+                <View style={styles.dateTimeContainer}>
+                  <DateTimePicker
+                    value={startDate}
+                    mode="date"
+                    onChange={onChangeStartDate}
+                  />
+                  <DateTimePicker
+                    value={startTime}
+                    mode="time"
+                    onChange={onChangeStartTime}
+                  />
+                </View>
+              </View>
+            )}
+
+            {selectedType === "Task" && (
+              <Text style={styles.label}>Deadline</Text>
+            )}
+            {selectedType === "Event" && <Text style={styles.label}>To</Text>}
+            {(selectedType === "Task" || selectedType === "Event") && (
               <View style={styles.dateTimeContainer}>
                 <DateTimePicker
-                  value={startDate}
+                  value={endDate}
                   mode="date"
-                  onChange={onChangeStartDate}
+                  onChange={onChangeEndDate}
                 />
                 <DateTimePicker
-                  value={startTime}
+                  value={endTime}
                   mode="time"
-                  onChange={onChangeStartTime}
+                  onChange={onChangeEndTime}
                 />
               </View>
-            </View>
-          )}
+            )}
 
-          {selectedType === "Task" && (
-            <Text style={styles.label}>Deadline</Text>
-          )}
-          {selectedType === "Event" && <Text style={styles.label}>To</Text>}
-          {(selectedType === "Task" || selectedType === "Event") && (
-            <View style={styles.dateTimeContainer}>
-              <DateTimePicker
-                value={endDate}
-                mode="date"
-                onChange={onChangeEndDate}
-              />
-              <DateTimePicker
-                value={endTime}
-                mode="time"
-                onChange={onChangeEndTime}
-              />
-            </View>
-          )}
-
-          {selectedType === "Group Event" && (
-            <View>
-              <Text style={styles.label}>Duration</Text>
-              <View style={styles.durationRow}>
-                <TextInput
-                  style={[
-                    styles.durationBox,
-                    !durationValid && styles.invalidBox,
-                  ]}
-                  value={hours}
-                  onChangeText={setHours}
-                  keyboardType="numeric"
-                />
-                <Text style={styles.hoursText}>hours</Text>
-                <TextInput
-                  style={[
-                    styles.durationBox,
-                    !durationValid && styles.invalidBox,
-                  ]}
-                  value={minutes}
-                  onChangeText={setMinutes}
-                  keyboardType="numeric"
-                />
-                <Text>minutes</Text>
-              </View>
-              <Text style={styles.multiplesMessage}>
-                Minutes should be in multiples of 15.
-              </Text>
-              <Text style={styles.label}>Participant emails</Text>
-              {emails.map((email, index) => (
-                <View key={index}>
-                  <View style={styles.emailRow}>
-                    <TextInput
-                      style={[
-                        styles.emailBox,
-                        (emailsValid[index] === "not found" ||
-                          emailsValid[index] === "duplicate" ||
-                          emailsValid[index] === "own email") &&
-                          styles.invalidBox,
-                      ]}
-                      value={email}
-                      onChangeText={(text) => handleEmailChange(text, index)}
-                    />
-                    <TouchableOpacity
-                      onPress={() =>
-                        setEmails(emails.filter((_, i) => i !== index))
-                      }
-                    >
-                      <Text style={styles.removeText}>Remove</Text>
-                    </TouchableOpacity>
-                  </View>
-                  {emailsValid[index] === "not found" && (
-                    <Text style={styles.invalidEmailText}>
-                      This email does not exist.
-                    </Text>
-                  )}
-                  {emailsValid[index] === "duplicate" && (
-                    <Text style={styles.invalidEmailText}>
-                      This email has already been entered.
-                    </Text>
-                  )}
-                  {emailsValid[index] === "own email" && (
-                    <Text style={styles.invalidEmailText}>
-                      You do not need to enter your own email.
-                    </Text>
-                  )}
+            {selectedType === "Group Event" && (
+              <View style={styles.availabilitySection}>
+                <Text style={styles.label}>Duration</Text>
+                <View style={styles.durationRow}>
+                  <TextInput
+                    style={[
+                      styles.durationBox,
+                      !durationValid && styles.invalidBox,
+                    ]}
+                    value={hours}
+                    onChangeText={setHours}
+                    keyboardType="numeric"
+                  />
+                  <Text style={styles.hoursText}>hours</Text>
+                  <TextInput
+                    style={[
+                      styles.durationBox,
+                      !durationValid && styles.invalidBox,
+                    ]}
+                    value={minutes}
+                    onChangeText={setMinutes}
+                    keyboardType="numeric"
+                  />
+                  <Text>minutes</Text>
                 </View>
-              ))}
-              <TouchableOpacity
-                onPress={() => setEmails([...emails, ""])}
-                style={styles.addEmailButton}
-              >
-                <Text style={styles.blue}>Add email</Text>
-              </TouchableOpacity>
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity onPress={checkAvailability}>
-                  <Text style={styles.blue}>Check availability</Text>
+                <Text style={styles.multiplesMessage}>
+                  Minutes should be in multiples of 15.
+                </Text>
+                <Text style={styles.label}>Participant emails</Text>
+                {emails.map((email, index) => (
+                  <View key={index}>
+                    <View style={styles.emailRow}>
+                      <TextInput
+                        style={[
+                          styles.emailBox,
+                          (emailsValid[index] === "not found" ||
+                            emailsValid[index] === "duplicate" ||
+                            emailsValid[index] === "own email") &&
+                            styles.invalidBox,
+                        ]}
+                        value={email}
+                        onChangeText={(text) => handleEmailChange(text, index)}
+                      />
+                      <TouchableOpacity
+                        onPress={() =>
+                          setEmails(emails.filter((_, i) => i !== index))
+                        }
+                      >
+                        <Text style={styles.removeText}>Remove</Text>
+                      </TouchableOpacity>
+                    </View>
+                    {emailsValid[index] === "not found" && (
+                      <Text style={styles.invalidEmailText}>
+                        This email does not exist.
+                      </Text>
+                    )}
+                    {emailsValid[index] === "duplicate" && (
+                      <Text style={styles.invalidEmailText}>
+                        This email has already been entered.
+                      </Text>
+                    )}
+                    {emailsValid[index] === "own email" && (
+                      <Text style={styles.invalidEmailText}>
+                        You do not need to enter your own email.
+                      </Text>
+                    )}
+                  </View>
+                ))}
+                <TouchableOpacity
+                  onPress={() => setEmails([...emails, ""])}
+                  style={styles.addEmailButton}
+                >
+                  <Text style={styles.addEmailText}>Add email</Text>
                 </TouchableOpacity>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity onPress={validateDurationAndEmails}>
+                    <Text style={styles.checkAvailabilityText}>
+                      Check availability
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                {durationValid &&
+                  emailsValid.every((status) => status === "valid") && (
+                    <View style={styles.slotsContainer}>
+                      <Text style={styles.label}>Select a time slot:</Text>
+                      {availableSlots.map((slot, index) => (
+                        <CustomRadioButton
+                          key={index}
+                          index={index}
+                          start={slot.start}
+                          end={slot.end}
+                        />
+                      ))}
+                    </View>
+                  )}
               </View>
-              {emailsValid.every((status) => status === "valid") && (
-                <Text>All emails valid</Text>
-              )}
-            </View>
-          )}
+            )}
 
-          {createButtonVisible && (
             <View style={styles.buttonContainer}>
               <TouchableOpacity onPress={createItem}>
                 <Text style={styles.createText}>Create</Text>
               </TouchableOpacity>
             </View>
-          )}
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -369,6 +470,14 @@ const styles = StyleSheet.create({
   },
   dateTimeContainer: {
     flexDirection: "row",
+    marginBottom: 20,
+  },
+  availabilitySection: {
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "gray",
+    paddingTop: 20,
+    paddingBottom: 20,
     marginBottom: 20,
   },
   durationRow: {
@@ -418,8 +527,32 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 20,
   },
-  blue: {
+  addEmailText: {
     color: "#0275d8",
+  },
+  checkAvailabilityText: {
+    color: "#0275d8",
+  },
+  slotsContainer: {
+    marginTop: 20,
+  },
+  radioButton: {
+    borderWidth: 1,
+    borderColor: "#0275d8",
+    padding: 8,
+    borderRadius: 8,
+    width: "100%",
+    marginBottom: 10,
+    alignItems: "center",
+  },
+  selectedRadioButton: {
+    backgroundColor: "#0275d8",
+  },
+  radioButtonText: {
+    textAlign: "center",
+  },
+  selectedRadioButtonText: {
+    color: "white",
   },
   buttonContainer: {
     alignItems: "center",
