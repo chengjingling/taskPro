@@ -36,7 +36,7 @@ const CalendarView = () => {
 
   useEffect(() => {
     const filtered = items.filter((item) => {
-      if (item.userId === auth.currentUser?.uid) {
+      if (item.email === auth.currentUser?.email) {
         if (item.startDate) {
           return selectedDate >= item.startDate && selectedDate <= item.endDate;
         } else {
@@ -73,7 +73,7 @@ const CalendarView = () => {
   }, [items, selectedDate]);
 
   const markedDates = items.reduce((acc, item) => {
-    if (item.userId === auth.currentUser?.uid) {
+    if (item.email === auth.currentUser?.email) {
       if (item.startDate) {
         const startDate = new Date(item.startDate);
         const endDate = new Date(item.endDate);
