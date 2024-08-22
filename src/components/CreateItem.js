@@ -222,8 +222,11 @@ const CreateItem = () => {
               "yyyy-MM-dd HH:mm",
               new Date()
             );
+            const now = new Date();
             slots = slots.filter(
-              (slot) => slot.end <= itemStart || slot.start >= itemEnd
+              (slot) =>
+                (slot.end <= itemStart || slot.start >= itemEnd) &&
+                slot.start > now
             );
           }
         }
