@@ -179,7 +179,7 @@ const CreateItem = () => {
       for (
         let current = start;
         current < end;
-        current = new Date(current.getTime() + durationMilliseconds)
+        current = new Date(current.getTime() + 900000)
       ) {
         slots.push({
           start: current,
