@@ -207,7 +207,9 @@ const CreateItem = () => {
         for (const item of itemsList) {
           if (
             (item.email === auth.currentUser?.email ||
-              emails.includes(item.email)) &&
+              emails.includes(item.email) ||
+              item.participants.includes(auth.currentUser?.email) ||
+              emails.some((email) => item.participants.includes(email))) &&
             item.startDate
           ) {
             const itemStart = parse(
