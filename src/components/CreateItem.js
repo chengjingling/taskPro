@@ -82,6 +82,7 @@ const CreateItem = () => {
     setSelectedType("Task");
     setStartDate("");
     setStartTime("");
+    setEmails([]);
     setCreateButtonEnabled(true);
   };
 
@@ -90,6 +91,7 @@ const CreateItem = () => {
     setStartDate(new Date());
     setStartTime(new Date());
     setEndDate(new Date());
+    setEmails([]);
     setCreateButtonEnabled(true);
   };
 
@@ -98,6 +100,7 @@ const CreateItem = () => {
     setStartDate(new Date());
     setStartTime(new Date());
     setEndDate(new Date());
+    setEmails([""]);
     setCreateButtonEnabled(false);
   };
 
