@@ -36,7 +36,10 @@ const CalendarView = () => {
 
   useEffect(() => {
     const filtered = items.filter((item) => {
-      if (item.email === auth.currentUser?.email) {
+      if (
+        item.email === auth.currentUser?.email ||
+        item.participants.includes(auth.currentUser?.email)
+      ) {
         if (item.startDate) {
           return selectedDate >= item.startDate && selectedDate <= item.endDate;
         } else {
@@ -73,7 +76,10 @@ const CalendarView = () => {
   }, [items, selectedDate]);
 
   const markedDates = items.reduce((acc, item) => {
-    if (item.email === auth.currentUser?.email) {
+    if (
+      item.email === auth.currentUser?.email ||
+      item.participants.includes(auth.currentUser?.email)
+    ) {
       if (item.startDate) {
         const startDate = new Date(item.startDate);
         const endDate = new Date(item.endDate);
@@ -120,7 +126,14 @@ const CalendarView = () => {
       style={styles.itemContainer}
     >
       <View style={styles.itemRow}>
-        <Text style={styles.itemTitle}>{item.title}</Text>
+        <View>
+          <Text style={styles.itemTitle}>{item.title}</Text>
+          {item.participants.length !== 0 && (
+            <Text style={styles.itemParticipants}>
+              {item.participants.length + 1} participants
+            </Text>
+          )}
+        </View>
         {item.startDate ? (
           <View style={styles.itemTimeContainer}>
             <Text style={styles.itemTime}>
@@ -204,6 +217,9 @@ const styles = StyleSheet.create({
   },
   itemTime: {
     fontSize: 14,
+  },
+  itemParticipants: {
+    color: "gray",
   },
   noItemsText: {
     padding: 10,

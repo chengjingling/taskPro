@@ -26,7 +26,7 @@ const CreateItem = () => {
   const [hours, setHours] = useState("");
   const [minutes, setMinutes] = useState("");
   const [durationValid, setDurationValid] = useState(true);
-  const [emails, setEmails] = useState([""]);
+  const [emails, setEmails] = useState([]);
   const [emailsValid, setEmailsValid] = useState([""]);
   const [chosenDate, setChosenDate] = useState(new Date());
   const [availableSlots, setAvailableSlots] = useState([]);
