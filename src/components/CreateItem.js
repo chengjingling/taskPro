@@ -219,6 +219,11 @@ const CreateItem = () => {
           }
         }
         setAvailableSlots(slots);
+        setSelectedSlot(0);
+        setStartDate(new Date(slots[0].start));
+        setStartTime(new Date(slots[0].start));
+        setEndDate(new Date(slots[0].end));
+        setEndTime(new Date(slots[0].end));
       });
       setCreateButtonEnabled(true);
     }
