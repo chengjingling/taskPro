@@ -156,16 +156,20 @@ const CreateItem = () => {
         let checked = [];
         for (const email of emails) {
           const emailLower = email.toLowerCase();
-          if (emailsList.includes(emailLower)) {
-            if (emailLower === auth.currentUser?.email) {
-              checkEmails.push("own email");
-            } else if (checked.includes(emailLower)) {
-              checkEmails.push("duplicate");
+          if (email) {
+            if (emailsList.includes(emailLower)) {
+              if (emailLower === auth.currentUser?.email) {
+                checkEmails.push("own email");
+              } else if (checked.includes(emailLower)) {
+                checkEmails.push("duplicate");
+              } else {
+                checkEmails.push("valid");
+              }
             } else {
-              checkEmails.push("valid");
+              checkEmails.push("not found");
             }
           } else {
-            checkEmails.push("not found");
+            checkEmails.push("blank");
           }
           checked.push(emailLower);
         }
@@ -384,7 +388,8 @@ const CreateItem = () => {
                       <TextInput
                         style={[
                           styles.emailBox,
-                          (emailsValid[index] === "not found" ||
+                          (emailsValid[index] === "blank" ||
+                            emailsValid[index] === "not found" ||
                             emailsValid[index] === "duplicate" ||
                             emailsValid[index] === "own email") &&
                             styles.invalidBox,
@@ -400,6 +405,11 @@ const CreateItem = () => {
                         <Text style={styles.removeText}>Remove</Text>
                       </TouchableOpacity>
                     </View>
+                    {emailsValid[index] === "blank" && (
+                      <Text style={styles.invalidEmailText}>
+                        Email cannot be blank.
+                      </Text>
+                    )}
                     {emailsValid[index] === "not found" && (
                       <Text style={styles.invalidEmailText}>
                         This email does not exist.
