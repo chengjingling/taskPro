@@ -224,7 +224,7 @@ const CreateItem = () => {
     }
   }, [durationValid, emailsValid, chosenDate]);
 
-  const CustomRadioButton = ({ index, start, end }) => (
+  const CustomRadioButton = ({ index, start }) => (
     <TouchableOpacity
       style={[
         styles.radioButton,
@@ -238,8 +238,7 @@ const CreateItem = () => {
           selectedSlot === index && styles.selectedRadioButtonText,
         ]}
       >
-        {format(start, "eeee, d MMM yyyy h:mm a")}
-        {"\n"}to {format(end, "eeee, d MMM yyyy h:mm a")}
+        {format(start, "h:mm a")}
       </Text>
     </TouchableOpacity>
   );
@@ -433,14 +432,15 @@ const CreateItem = () => {
                         />
                       </View>
                       <Text style={styles.label}>Select a time:</Text>
-                      {availableSlots.map((slot, index) => (
-                        <CustomRadioButton
-                          key={index}
-                          index={index}
-                          start={slot.start}
-                          end={slot.end}
-                        />
-                      ))}
+                      <View style={styles.slotsColumns}>
+                        {availableSlots.map((slot, index) => (
+                          <CustomRadioButton
+                            key={index}
+                            index={index}
+                            start={slot.start}
+                          />
+                        ))}
+                      </View>
                     </View>
                   )}
               </View>
@@ -557,14 +557,22 @@ const styles = StyleSheet.create({
     alignItems: "left",
     marginBottom: 20,
   },
+  slotsColumns: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginLeft: 40,
+  },
   radioButton: {
     borderWidth: 1,
     borderColor: "#0275d8",
     padding: 8,
     borderRadius: 8,
-    width: "100%",
+    width: "40%",
+    height: 40,
     marginBottom: 10,
+    marginRight: 20,
     alignItems: "center",
+    justifyContent: "center",
   },
   selectedRadioButton: {
     backgroundColor: "#0275d8",
