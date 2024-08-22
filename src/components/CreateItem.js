@@ -28,6 +28,7 @@ const CreateItem = () => {
   const [durationValid, setDurationValid] = useState(true);
   const [emails, setEmails] = useState([""]);
   const [emailsValid, setEmailsValid] = useState([""]);
+  const [chosenDate, setChosenDate] = useState(new Date());
   const [availableSlots, setAvailableSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(0);
   const [createButtonEnabled, setCreateButtonEnabled] = useState(true);
@@ -76,6 +77,10 @@ const CreateItem = () => {
 
   const onChangeEndTime = (event, selectedTime) => {
     setEndTime(selectedTime);
+  };
+
+  const onChangeChosenDate = (event, selectedDate) => {
+    setChosenDate(selectedDate);
   };
 
   const changeToTask = () => {
@@ -169,16 +174,16 @@ const CreateItem = () => {
   useEffect(() => {
     if (durationValid && emailsValid.every((status) => status === "valid")) {
       const start = new Date();
-      start.setDate(start.getDate() + 1);
+      start.setDate(chosenDate.getDate());
       start.setHours(0, 0, 0, 0);
       const end = new Date();
-      end.setDate(end.getDate() + 4);
+      end.setDate(chosenDate.getDate() + 1);
       end.setHours(0, 0, 0, 0);
       const durationMilliseconds = hours * 60 * 60 * 1000 + minutes * 60 * 1000;
       let slots = [];
       for (
         let current = start;
-        current < end;
+        current <= end.getTime() - durationMilliseconds;
         current = new Date(current.getTime() + 900000)
       ) {
         slots.push({
@@ -217,7 +222,7 @@ const CreateItem = () => {
       });
       setCreateButtonEnabled(true);
     }
-  }, [durationValid, emailsValid]);
+  }, [durationValid, emailsValid, chosenDate]);
 
   const CustomRadioButton = ({ index, start, end }) => (
     <TouchableOpacity
@@ -419,7 +424,15 @@ const CreateItem = () => {
                 {durationValid &&
                   emailsValid.every((status) => status === "valid") && (
                     <View style={styles.slotsContainer}>
-                      <Text style={styles.label}>Select a time slot:</Text>
+                      <Text style={styles.label}>Select a date:</Text>
+                      <View style={styles.chosenDateContainer}>
+                        <DateTimePicker
+                          value={chosenDate}
+                          mode="date"
+                          onChange={onChangeChosenDate}
+                        />
+                      </View>
+                      <Text style={styles.label}>Select a time:</Text>
                       {availableSlots.map((slot, index) => (
                         <CustomRadioButton
                           key={index}
@@ -539,6 +552,10 @@ const styles = StyleSheet.create({
   },
   slotsContainer: {
     marginTop: 20,
+  },
+  chosenDateContainer: {
+    alignItems: "left",
+    marginBottom: 20,
   },
   radioButton: {
     borderWidth: 1,
