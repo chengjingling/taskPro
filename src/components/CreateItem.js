@@ -219,11 +219,13 @@ const CreateItem = () => {
           }
         }
         setAvailableSlots(slots);
-        setSelectedSlot(0);
-        setStartDate(new Date(slots[0].start));
-        setStartTime(new Date(slots[0].start));
-        setEndDate(new Date(slots[0].end));
-        setEndTime(new Date(slots[0].end));
+        if (slots.length !== 0) {
+          setSelectedSlot(0);
+          setStartDate(new Date(slots[0].start));
+          setStartTime(new Date(slots[0].start));
+          setEndDate(new Date(slots[0].end));
+          setEndTime(new Date(slots[0].end));
+        }
       });
       setCreateButtonEnabled(true);
     }
@@ -437,15 +439,21 @@ const CreateItem = () => {
                         />
                       </View>
                       <Text style={styles.label}>Select a time:</Text>
-                      <View style={styles.slotsColumns}>
-                        {availableSlots.map((slot, index) => (
-                          <CustomRadioButton
-                            key={index}
-                            index={index}
-                            start={slot.start}
-                          />
-                        ))}
-                      </View>
+                      {availableSlots.length === 0 ? (
+                        <Text style={styles.noSlotsText}>
+                          No available slots on this day
+                        </Text>
+                      ) : (
+                        <View style={styles.slotsColumns}>
+                          {availableSlots.map((slot, index) => (
+                            <CustomRadioButton
+                              key={index}
+                              index={index}
+                              start={slot.start}
+                            />
+                          ))}
+                        </View>
+                      )}
                     </View>
                   )}
               </View>
@@ -561,6 +569,9 @@ const styles = StyleSheet.create({
   chosenDateContainer: {
     alignItems: "left",
     marginBottom: 20,
+  },
+  noSlotsText: {
+    textAlign: "center",
   },
   slotsColumns: {
     flexDirection: "row",
