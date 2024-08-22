@@ -118,7 +118,7 @@ const CreateItem = () => {
   const validateDurationAndEmails = () => {
     setDurationValid(true);
     setEmails(emails.map((email) => email.toLowerCase()));
-    setEmailsValid(emails.map(() => ""));
+    setEmailsValid([""]);
     if (hours === "") {
       setHours("0");
     }
@@ -269,6 +269,13 @@ const CreateItem = () => {
     setEndDate(new Date(availableSlots[index].end));
     setEndTime(new Date(availableSlots[index].end));
   };
+
+  useEffect(() => {
+    if (selectedType === "Group Event") {
+      setEmailsValid([""]);
+      setCreateButtonEnabled(false);
+    }
+  }, [hours, minutes, emails]);
 
   return (
     <SafeAreaView style={styles.container}>
