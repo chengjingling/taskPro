@@ -133,6 +133,9 @@ const CreateItem = () => {
     } else if (!Number.isInteger(hoursNum) || !Number.isInteger(minutesNum)) {
       Alert.alert("Error", "Duration must be in integers");
       setDurationValid(false);
+    } else if (hoursNum > 24 || (hoursNum === 24 && minutesNum > 0)) {
+      Alert.alert("Error", "Duration cannot exceed 24 hours");
+      setDurationValid(false);
     } else if (minutesNum % 15 !== 0) {
       Alert.alert(
         "Error",
