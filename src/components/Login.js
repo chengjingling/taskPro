@@ -131,6 +131,7 @@ const Login = () => {
               value={lastName}
               onChangeText={setLastName}
               style={styles.textInput}
+              autoCapitalize="sentences"
             />
             <TextInput
               placeholder="Email"
