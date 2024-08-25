@@ -463,7 +463,7 @@ const CreateItem = () => {
                           onChange={onChangeChosenDate}
                         />
                       </View>
-                      <Text style={styles.label}>Select a time:</Text>
+                      <Text style={styles.label}>Available slots:</Text>
                       {availableSlots.length === 0 ? (
                         <Text style={styles.noSlotsText}>
                           No available slots on this day
