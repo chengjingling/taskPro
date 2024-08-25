@@ -418,6 +418,7 @@ const CreateItem = () => {
                         ]}
                         value={email}
                         onChangeText={(text) => handleEmailChange(text, index)}
+                        autoCapitalize="none"
                       />
                       <TouchableOpacity
                         onPress={() =>

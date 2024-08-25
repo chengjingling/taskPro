@@ -103,6 +103,7 @@ const Login = () => {
               value={email}
               onChangeText={setEmail}
               style={styles.textInput}
+              autoCapitalize="none"
             />
             <TextInput
               placeholder="Password"
@@ -136,6 +137,7 @@ const Login = () => {
               value={email}
               onChangeText={setEmail}
               style={styles.textInput}
+              autoCapitalize="none"
             />
             <TextInput
               placeholder="Password"
