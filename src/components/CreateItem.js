@@ -35,6 +35,10 @@ const CreateItem = () => {
   const navigation = useNavigation();
 
   const createItem = () => {
+    const formattedStartDate = startDate ? format(startDate, "yyyy-MM-dd") : "";
+    const formattedStartTime = startTime ? format(startTime, "HH:mm") : "";
+    const formattedEndDate = format(endDate, "yyyy-MM-dd");
+    const formattedEndTime = format(endTime, "HH:mm");
     if (!createButtonEnabled) {
       Alert.alert(
         "Error",
@@ -43,18 +47,20 @@ const CreateItem = () => {
     } else if (!title) {
       Alert.alert("Error", "Title cannot be blank");
     } else if (
-      startDate &&
-      (startDate > endDate || (startDate === endDate && startTime >= endTime))
+      formattedStartDate &&
+      (formattedStartDate > formattedEndDate ||
+        (formattedStartDate === formattedEndDate &&
+          formattedStartTime >= formattedEndTime))
     ) {
       Alert.alert("Error", "'To' date/time must be after 'From' date/time");
     } else {
       const itemsDb = collection(db, "items");
       addDoc(itemsDb, {
         title: title,
-        startDate: startDate ? format(startDate, "yyyy-MM-dd") : startDate,
-        startTime: startTime ? format(startTime, "HH:mm") : startTime,
-        endDate: format(endDate, "yyyy-MM-dd"),
-        endTime: format(endTime, "HH:mm"),
+        startDate: formattedStartDate,
+        startTime: formattedStartTime,
+        endDate: formattedEndDate,
+        endTime: formattedEndTime,
         participants: emails,
         email: auth.currentUser?.email,
       });
@@ -87,6 +93,8 @@ const CreateItem = () => {
     setSelectedType("Task");
     setStartDate("");
     setStartTime("");
+    setEndDate(new Date());
+    setEndTime(new Date());
     setEmails([]);
     setCreateButtonEnabled(true);
   };
@@ -96,6 +104,7 @@ const CreateItem = () => {
     setStartDate(new Date());
     setStartTime(new Date());
     setEndDate(new Date());
+    setEndTime(new Date());
     setEmails([]);
     setCreateButtonEnabled(true);
   };
@@ -105,6 +114,7 @@ const CreateItem = () => {
     setStartDate(new Date());
     setStartTime(new Date());
     setEndDate(new Date());
+    setEndTime(new Date());
     setEmails([""]);
     setCreateButtonEnabled(false);
   };
