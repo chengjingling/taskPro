@@ -56,6 +56,7 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: "#0275d8",
+    fontSize: 15,
   },
   plusButton: {
     marginRight: 23,
