@@ -35,20 +35,26 @@ const Login = () => {
   };
 
   const handleRegister = () => {
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredentials) => {
-        const user = userCredentials.user;
-        console.log("Registered with:", user.email);
-        const usersDb = collection(db, "users");
-        addDoc(usersDb, {
-          firstName: firstName,
-          lastName: lastName,
-          email: email.toLowerCase(),
-        });
-        console.log("User added to db");
-        handleLogin();
-      })
-      .catch((error) => Alert.alert("Error", error.message));
+    if (!firstName) {
+      Alert.alert("Error", "First name cannot be blank");
+    } else if (!lastName) {
+      Alert.alert("Error", "Last name cannot be blank");
+    } else {
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredentials) => {
+          const user = userCredentials.user;
+          console.log("Registered with:", user.email);
+          const usersDb = collection(db, "users");
+          addDoc(usersDb, {
+            firstName: firstName,
+            lastName: lastName,
+            email: email.toLowerCase(),
+          });
+          console.log("User added to db");
+          handleLogin();
+        })
+        .catch((error) => Alert.alert("Error", error.message));
+    }
   };
 
   useEffect(() => {
