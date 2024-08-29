@@ -67,6 +67,9 @@ const ItemDetails = ({ route }) => {
         (user) =>
           user.email === item.email || item.participants.includes(user.email)
       );
+      usersList.sort((a, b) =>
+        a.firstName.toLowerCase().localeCompare(b.firstName.toLowerCase())
+      );
       setUsers(usersList);
     });
   }, []);
