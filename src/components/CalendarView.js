@@ -128,8 +128,14 @@ const CalendarView = () => {
       <View style={styles.itemRow}>
         <View>
           <Text style={styles.itemTitle}>{item.title}</Text>
+          {!item.startDate &&
+            (item.completed ? (
+              <Text style={styles.itemSubtext}>Completed</Text>
+            ) : (
+              <Text style={styles.itemSubtext}>Not completed</Text>
+            ))}
           {item.participants.length !== 0 && (
-            <Text style={styles.itemParticipants}>
+            <Text style={styles.itemSubtext}>
               {item.participants.length + 1} participants
             </Text>
           )}
@@ -212,14 +218,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
+  itemSubtext: {
+    color: "gray",
+  },
   itemTimeContainer: {
     alignItems: "flex-end",
   },
   itemTime: {
     fontSize: 14,
-  },
-  itemParticipants: {
-    color: "gray",
   },
   noItemsText: {
     padding: 10,

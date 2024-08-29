@@ -8,7 +8,13 @@ import {
   Alert,
 } from "react-native";
 import { format, parse } from "date-fns";
-import { deleteDoc, doc, collection, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useNavigation } from "@react-navigation/native";
 import { auth } from "../config/firebase";
@@ -17,6 +23,15 @@ const ItemDetails = ({ route }) => {
   const { item } = route.params;
   const [users, setUsers] = useState([]);
   const navigation = useNavigation();
+
+  const markAsComplete = () => {
+    const itemDoc = doc(db, "items", item.id);
+    updateDoc(itemDoc, {
+      completed: true,
+    });
+    item.completed = true;
+    navigation.navigate("Item Details", { item });
+  };
 
   const confirmDelete = () => {
     Alert.alert(
@@ -59,7 +74,26 @@ const ItemDetails = ({ route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
-        <Text style={styles.itemTitle}>{item.title}</Text>
+        <View style={styles.itemTitleRow}>
+          <Text style={styles.itemTitle}>{item.title}</Text>
+          <View
+            style={
+              item.startDate
+                ? styles.invisibleContainer
+                : item.completed
+                ? styles.itemCompletedContainer
+                : styles.itemNotCompletedContainer
+            }
+          >
+            {item.startDate ? (
+              <Text style={styles.invisibleText}>-</Text>
+            ) : item.completed ? (
+              <Text style={styles.completedText}>✓ Completed</Text>
+            ) : (
+              <Text>✖️ Not completed</Text>
+            )}
+          </View>
+        </View>
 
         {item.startDate ? (
           <Text style={styles.itemDateTime}>
@@ -102,11 +136,15 @@ const ItemDetails = ({ route }) => {
           </View>
         )}
 
-        <View style={styles.deleteButton}>
-          <TouchableOpacity onPress={confirmDelete}>
-            <Text style={styles.deleteText}>Delete</Text>
+        {!item.startDate && !item.completed && (
+          <TouchableOpacity onPress={() => markAsComplete()}>
+            <Text style={styles.markAsCompleteText}>Mark as complete</Text>
           </TouchableOpacity>
-        </View>
+        )}
+
+        <TouchableOpacity onPress={confirmDelete}>
+          <Text style={styles.deleteText}>Delete</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -116,10 +154,36 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
   },
+  itemTitleRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
   itemTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 10,
+  },
+  invisibleContainer: {
+    backgroundColor: "transparent",
+    padding: 8,
+    borderRadius: 10,
+  },
+  itemCompletedContainer: {
+    backgroundColor: "#28a745",
+    padding: 8,
+    borderRadius: 10,
+  },
+  itemNotCompletedContainer: {
+    backgroundColor: "#ddd",
+    padding: 8,
+    borderRadius: 10,
+  },
+  invisibleText: {
+    color: "transparent",
+  },
+  completedText: {
+    color: "white",
   },
   itemDateTime: {
     marginBottom: 20,
@@ -130,12 +194,16 @@ const styles = StyleSheet.create({
   participantsHeader: {
     fontWeight: "bold",
   },
-  deleteButton: {
-    alignItems: "center",
+  markAsCompleteText: {
+    color: "#0275d8",
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 10,
   },
   deleteText: {
     color: "#dc3545",
     fontSize: 16,
+    textAlign: "center",
   },
 });
 

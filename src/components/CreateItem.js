@@ -61,6 +61,7 @@ const CreateItem = () => {
         startTime: formattedStartTime,
         endDate: formattedEndDate,
         endTime: formattedEndTime,
+        completed: false,
         participants: emails,
         email: auth.currentUser?.email,
       });
