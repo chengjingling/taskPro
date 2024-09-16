@@ -75,7 +75,7 @@ Validation checks are put in place to detect invalid inputs, such as missing fie
 ## New Item screen - group event
 
 <p align="center">
-    <img src="create-group-event-1.png" width="200" style="margin-right: 10px;" />
+    <img src="create-group-event-1.png" width="200" style="margin-right: 20px;" />
     <img src="create-group-event-2.png" width="200" />
 </p>
 
@@ -86,7 +86,7 @@ Validation checks are put in place to detect invalid inputs, such as missing fie
 ## Item Details screen - task
 
 <p align="center">
-    <img src="view-task-1.png" width="200" style="margin-right: 10px;" />
+    <img src="view-task-1.png" width="200" style="margin-right: 20px;" />
     <img src="view-task-2.png" width="200" />
 </p>
 
